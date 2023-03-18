@@ -2,6 +2,7 @@ using API.Mapper;
 using API.Services;
 using AutoMapper;
 using DataAccess.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,11 +15,22 @@ builder.Services.AddScoped<ICoffeeShopService, CoffeeShopService>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddControllers();
 
+builder.Services.AddAuthentication(options => {
+    options.DefaultAuthenticateScheme = "Bearer";
+    options.DefaultChallengeScheme = "Bearer";
+    options.DefaultSignInScheme = "Bearer";
+})
+    .AddIdentityServerAuthentication(options => {
+        options.Authority = "https://localhost:5443";
+        options.ApiName = "CoffeeAPI";
+    });
+
 //Middleware Pipeline
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
-
 app.MapControllers();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
